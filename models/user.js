@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const {productSchema} = require("../models/product");
 const Joi = require('joi');
+const config = require('config');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
     firstName: {type: String, required: true, minlength: 1, maxlength: 30},
@@ -8,11 +10,14 @@ const userSchema = new mongoose.Schema({
     email: {type: String, required: true, minlength: 4, maxlength: 30},
     age: {type: String, required: true},
     username: {type: String, required: true, minlength: 1, maxlength: 30},
-    password: {type: String, required: true, minlength: 4, maxlength: 50},
+    password: {type: String, required: true, minlength: 4, maxlength: 100},
     cart: {type: [productSchema], default: [] },
 
-})
+});
 
+userSchema.methods.generateAuthToken = function () {
+    return jwt.sign({_id: this._id, name: this.name}, config.get('jwtSecret'));
+};
 const User = mongoose.model('User', userSchema);
 
 function validateUser(user) {
@@ -22,7 +27,7 @@ function validateUser(user) {
         email: Joi.string().required().min(4).max(30),
         age: Joi.string().required(),
         username: Joi.string().required().min(1).max(30),
-        password: Joi.string().required().min(4).max(50),
+        password: Joi.string().required().min(4).max(100),
     })
     return schema.validate(user);
 }
