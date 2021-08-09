@@ -4,6 +4,8 @@ const { User, validateUser } = require("../models/user");
 const { Product, validateProduct } = require("../models/product");
 const { Review, validateReview } = require("../models/review");
 const bcrypt = require('bcrypt');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 
 
 //GET Grabs all users in database
@@ -29,7 +31,7 @@ router.get("/users/:userId", async (req, res) => {
 });
 
 //GET endpoint that returns all products
-router.get("/products", async (req, res) => {
+router.get("/products", auth, async (req, res) => {
     try{
         const product = await Product.find();
         return res.send(product);
@@ -39,7 +41,7 @@ router.get("/products", async (req, res) => {
 });
 
 //GET endpoint that returns individual product.
-router.get("/products/:productId", async (req,res) => {
+router.get("/products/:productId", auth, async (req,res) => {
     try {
         const product = await Product.findById(req.params.productId);
         return res.send(product);
@@ -49,7 +51,7 @@ router.get("/products/:productId", async (req,res) => {
 })
 
 //GET endpoint that returns reviews related to a individual product
-router.get("/products/reviews/:productId", async (req, res) => {
+router.get("/products/reviews/:productId", auth, async (req, res) => {
 try {
     const product = await Product.findById(req.params.productId);
     return res.send(product.productReview);
@@ -114,7 +116,7 @@ router.post('/register', async (req, res) => {
     }
    });
 //POST endpoint that creates a new product
-router.post('/products' , async (req,res) => {
+router.post('/products', [auth, admin], async (req,res) => {
     try {
         const {error} = validateProduct(req.body);
         if (error) return res.status(400).send(error);
@@ -132,7 +134,7 @@ router.post('/products' , async (req,res) => {
 });
 
 //POST endpoint that adds a new product to the cart
-router.post("/cart/:userId/:productId", async (req, res) => {
+router.post("/cart/:userId/:productId", auth, async (req, res) => {
     try{
         const user = await User.findById(req.params.userId);
         if(!user) return res.status(400).send(`The user with id ${req.params.userId} does not exist`);
@@ -150,7 +152,7 @@ router.post("/cart/:userId/:productId", async (req, res) => {
 });
 
 //PUT endpoint that adds a new review to a product
-router.put("/products/reviews/:productId", async (req,res) => {
+router.put("/products/reviews/:productId", auth, async (req,res) => {
     try {
         let product = await Product.findById(req.params.productId);
         if (!product) return res.status(400).send(`Product does not exist.`);
@@ -187,7 +189,7 @@ router.put("/products/reviews/:productId", async (req,res) => {
 // });
 
 //DELETE endpoint that deletes a product from a cart
- router.delete("/cart/:userId/:productId", async (req,res) => {
+ router.delete("/cart/:userId/:productId", auth, async (req,res) => {
     try{
      const user = await User.findById(req.params.userId);
      if(!user) return res.status(400).send(`The user with id ${req.params.userId} does not exist.`);
@@ -205,12 +207,10 @@ router.put("/products/reviews/:productId", async (req,res) => {
  }});
 
  //DELETE endpoint that deletes a user's account
- router.delete("/delete/:userId", async (req,res) => {
+ router.delete("/delete/:userId", auth, async (req,res) => {
      try{
-        const user = await User.findOneAndDelete(req.params.userId);
-        if (!user) return res.status(400).send(`The user with id ${req.params.userId} does not exist.`);
-
-        await user.save();
+        const user = await User.findByIdAndRemove(req.params.userId);
+        if (!user) return res.status(400).send(`The user with id ${req.params.email} does not exist.`);
 
         return res.send(`User was succesfully deleted.`);
      }  catch (ex) {
