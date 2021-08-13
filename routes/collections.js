@@ -31,7 +31,7 @@ router.get("/users/:userId", async (req, res) => {
 });
 
 //GET endpoint that returns all products
-router.get("/products", auth, async (req, res) => {
+router.get("/products", async (req, res) => {
     try{
         const product = await Product.find();
         return res.send(product);
@@ -134,7 +134,7 @@ router.post('/products', [auth, admin], async (req,res) => {
 });
 
 //POST endpoint that adds a new product to the cart
-router.post("/cart/:userId/:productId", auth, async (req, res) => {
+router.post("/cart/:userId/:productId", async (req, res) => {
     try{
         const user = await User.findById(req.params.userId);
         if(!user) return res.status(400).send(`The user with id ${req.params.userId} does not exist`);
@@ -173,20 +173,25 @@ router.put("/products/reviews/:productId", auth, async (req,res) => {
 
 
 // //PUT endpoint that changes user info
-// router.put("/users/:userId", async (req, res) => {
-//     try{
-//         let user = User.findById(req.params.userId);
-//         if (!user) return res.status(400).send(`User does not exist.`);
+router.put("/users/:userId", async (req, res) => {
+    try{
+        let user = await User.findById(req.params.userId);
+        if (!user) return res.status(400).send(`User does not exist.`);
 
         
-//             user.firstName = req.body.firstName
+            user.firstName = req.body.firstName,
+            user.lastName = req.body.lastName,
+            user.email = req.body.email,
+            user.age = req.body.age,
+            user.username = req.body.username
             
-//             return res.send(user);
+            await user.save();
+            return res.send(user);
             
-//     }   catch (ex) {
-//         return res.status(500).send(`Internal Server Error: ${ex}`);
-//     }
-// });
+    }   catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
 
 //DELETE endpoint that deletes a product from a cart
  router.delete("/cart/:userId/:productId", auth, async (req,res) => {

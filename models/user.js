@@ -4,6 +4,7 @@ const Joi = require('joi');
 const config = require('config');
 const jwt = require('jsonwebtoken');
 
+
 const userSchema = new mongoose.Schema({
     firstName: {type: String, required: true, minlength: 1, maxlength: 30},
     lastName: {type: String, required: true, minlength: 1, maxlength: 30},
@@ -12,6 +13,7 @@ const userSchema = new mongoose.Schema({
     username: {type: String, required: true, minlength: 1, maxlength: 30},
     password: {type: String, required: true, minlength: 4, maxlength: 100},
     cart: {type: [productSchema], default: [] },
+    profileImage: {type: String, required: true,default: 'no Photo' },
     isAdmin: { type: Boolean, default: false},
 
 });
