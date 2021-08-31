@@ -161,6 +161,7 @@ router.put("/products/reviews/:productId", async (req,res) => {
         if(error) return res.status(400).send(error)
 
         review = new Review({
+            title: req.body.title,
             text: req.body.text,
             rating: req.body.rating
         });
